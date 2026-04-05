@@ -1,7 +1,11 @@
-const CACHE_NAME = 'gnoke-zip-v2';
+const CACHE_NAME = 'gnoke-zip-v2.1';
 const ASSETS = [
   './', './index.html', 
   './main/',
+  './main/index.html',
+ './main/settings.html',
+ './main/about.html',
+  './main/hmenu.js',
   './style.css', 
   './global.png', 
   './manifest.json',
@@ -11,7 +15,10 @@ const ASSETS = [
   './js/archiver.js',
   './js/extractor.js',
   './js/update.js', 
+  './js/libs.js',
+  './js/creator.js',
   './js/app.js',
+
 ];
 self.addEventListener('install',  e => { self.skipWaiting(); e.waitUntil(caches.open(CACHE_NAME).then(c => c.addAll(ASSETS))); });
 self.addEventListener('activate', e => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE_NAME).map(k => caches.delete(k))))); });
