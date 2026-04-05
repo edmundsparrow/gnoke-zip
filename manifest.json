@@ -1,7 +1,7 @@
 {
-  "name": "Gnoke [AppName]",
-  "short_name": "[AppName]",
-  "description": "[One-line description. Portable. Private. Persistent.]",
+  "name": "Gnoke Zip",
+  "short_name": "Gnoke-Zip",
+  "description": "Offline-first archive extractor with dynamic WASM support",
   "start_url": ".",
   "display": "standalone",
   "background_color": "#f7f2ec",
