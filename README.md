@@ -36,31 +36,35 @@ Open: **http://localhost:8080**
 > ⚠️ Always run through a local server. Do not open HTML files directly
 > in the browser --- sql.js WASM will not load via `file://`.
 
-------------------------------------------------------------------------
+---
 
-## Project Structure
+##  Project Structure
 
     gnoke-zip/
-    ├── index.html          ← Splash / intro screen
+    ├── index.html              ← Splash / intro screen
     ├── main/
-    │   └── index.html      ← Main app shell (clean URL: /main/)
+    │   ├── index.html          ← Main app shell (clean URL: /main/)
+    │   ├── about.html          ← About page
+    │   ├── settings.html       ← Settings UI
+    │   └── hmenu.js            ← Header menu logic
     ├── js/
-    │   ├── state.js        ← App state (single source of truth)
-    │   ├── theme.js        ← Dark / light toggle
-    │   ├── ui.js           ← Toast, modal, status chip
-    │   ├── creator.js      ← Archive loader / handler
-    │   ├── extractor.js    ← Extraction logic
-    │   ├── archiver.js     ← Storage / history
-    │   ├── update.js       ← Version checker
-    │   └── app.js          ← Bootstrap + event wiring
-    ├── style.css           ← Gnoke design system
-    ├── sw.js               ← Service worker (offline / PWA)
-    ├── manifest.json       ← PWA manifest
-    ├── wasm/               ← Optional RAR / 7Z support
-    ├── global.png          ← App icon
+    │   ├── libs.js             ← External helpers / shared utilities
+    │   ├── state.js            ← App state (single source of truth)
+    │   ├── theme.js            ← Dark / light toggle
+    │   ├── ui.js               ← Toast, modal, status chip
+    │   ├── creator.js          ← Archive loader / handler
+    │   ├── extractor.js        ← Extraction logic
+    │   ├── archiver.js         ← Storage / history
+    │   ├── update.js           ← Version checker
+    │   └── app.js              ← Bootstrap + event wiring
+    ├── style.css               ← Gnoke design system
+    ├── sw.js                   ← Service worker (offline / PWA)
+    ├── manifest.json           ← PWA manifest
+    ├── wasm/                   ← Optional RAR / 7Z support
+    ├── global.png              ← App icon
     └── LICENSE
 
-------------------------------------------------------------------------
+---
 
 ## WASM Setup (RAR and 7Z)
 
