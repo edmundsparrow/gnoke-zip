@@ -1,0 +1,460 @@
+/* ══════════════════════════════════════════════════════════════════════════
+   style.css — Gnoke Suite Design System
+   Shared across all Gnoke apps. Do NOT edit structure/layout rules.
+   Per-app customisation: --accent and --bg tokens ONLY (see TOKENS section).
+   Copyright © 2026 Edmund Sparrow — GNU GPL v3
+   ══════════════════════════════════════════════════════════════════════════ */
+
+
+/* ── 1. TOKENS ──────────────────────────────────────────────────────────── */
+:root {
+  /* Palette */
+  --bg:           #f7f2ec;
+  --bg2:          #ede5d8;
+  --surface:      #ffffff;
+  --surface2:     #faf7f4;
+  --surface3:     #f3ede5;
+  --text:         #1c140e;
+  --text2:        #4a3728;
+  --muted:        #9c8070;
+  --border:       #e0d2c2;
+  --border2:      #ccbbaa;
+
+  /* Accent — ZIP: deep violet-pink */
+  --accent:       #9b2c82;
+  --accent-dk:    #7a1f66;
+  --accent-lt:    #f8edf6;
+  --accent-txt:   #5c1a50;
+  --accent-dim:   color-mix(in srgb, var(--accent) 10%, transparent);
+
+  /* Status colours */
+  --green:        #2d6e4e;
+  --green-lt:     #dff2ea;
+  --red:          #b83030;
+  --red-lt:       #fde8e8;
+  --danger:       #b83030;
+
+  /* Typography */
+  --font-sans:    'DM Sans', sans-serif;
+  --font-mono:    'DM Mono', monospace;
+  --font-display: 'Playfair Display', serif;
+
+  /* Radii */
+  --radius:       8px;
+  --radius-lg:    12px;
+
+  /* Transitions */
+  --transition:   0.15s ease;
+
+  /* Topbar */
+  --topbar-h:     52px;
+  --topbar-bg:    #ffffff;
+  --topbar-bdr:   #e0d2c2;
+  --topbar-txt:   #1c140e;
+  --topbar-muted: #9c8070;
+}
+
+/* ── Dark theme ── */
+[data-theme="dark"] {
+  --bg:           #141010;
+  --bg2:          #1e1818;
+  --surface:      #1e1818;
+  --surface2:     #252020;
+  --surface3:     #2c2525;
+  --text:         #f0e8e0;
+  --text2:        #c0a898;
+  --muted:        #7a6258;
+  --border:       #332828;
+  --border2:      #443333;
+
+  --accent:       #d45ab5;
+  --accent-dk:    #bb3e9e;
+  --accent-lt:    #2a1526;
+  --accent-txt:   #f0c0e8;
+  --accent-dim:   color-mix(in srgb, var(--accent) 12%, transparent);
+
+  --green:        #4cae7c;
+  --green-lt:     #0d2b1e;
+  --red:          #e06060;
+  --red-lt:       #2b0e0e;
+  --danger:       #e06060;
+
+  --topbar-bg:    #1e1818;
+  --topbar-bdr:   #332828;
+  --topbar-txt:   #f0e8e0;
+  --topbar-muted: #7a6258;
+}
+
+
+/* ── 2. RESET ────────────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  width: 100%; height: 100dvh;
+  background: var(--bg); color: var(--text);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+}
+
+
+/* ── 3. TOPBAR ───────────────────────────────────────────────────────────── */
+header, #topbar {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  height: var(--topbar-h);
+  background: var(--topbar-bg);
+  border-bottom: 1px solid var(--topbar-bdr);
+  display: flex; align-items: center;
+  padding: 0 16px; gap: 10px;
+}
+
+#topbar-left  { display: flex; align-items: center; gap: 8px; }
+#topbar-right { margin-left: auto; display: flex; align-items: center; gap: 6px; }
+
+/* Brand */
+#topbar-brand { display: flex; align-items: baseline; gap: 6px; }
+#topbar-gnoke {
+  font-family: var(--font-mono); font-size: .58rem;
+  letter-spacing: .22em; text-transform: uppercase; color: var(--accent);
+}
+#topbar-app {
+  font-family: var(--font-display);
+  font-size: 1rem; font-weight: 700; color: var(--topbar-txt);
+}
+
+/* Context info (between brand and right) */
+#context-info {
+  margin-left: 12px;
+  font-family: var(--font-mono); font-size: .64rem;
+  letter-spacing: .04em; color: var(--muted);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  max-width: 200px;
+}
+
+/* Icon buttons (theme toggle, hamburger) */
+.icon-btn {
+  background: none; border: none; cursor: pointer;
+  font-size: 1rem; padding: 6px 8px; border-radius: var(--radius);
+  color: var(--topbar-muted); transition: background var(--transition), color var(--transition);
+}
+.icon-btn:hover { background: var(--accent-dim); color: var(--accent); }
+
+/* Hamburger — only visible on mobile */
+#hamburger {
+  display: none; align-items: center; justify-content: center;
+  background: none; border: none; cursor: pointer;
+  padding: 6px; border-radius: var(--radius); color: var(--topbar-muted);
+  font-size: 1.15rem; transition: color var(--transition);
+}
+#hamburger:hover { color: var(--accent); }
+
+/* Status chip */
+#status-chip {
+  font-family: var(--font-mono); font-size: .64rem; letter-spacing: .04em;
+  color: var(--muted); padding: 3px 8px; border-radius: 20px;
+  opacity: 0; transition: opacity .2s, background .2s;
+}
+#status-chip.show { opacity: 1; background: var(--accent-lt); color: var(--accent-txt); }
+#status-chip.err  { background: var(--red-lt); color: var(--danger); }
+
+/* Desktop menu group */
+.menu-group {
+  display: flex; align-items: center; gap: 2px;
+  margin-left: 8px;
+}
+.menu-btn {
+  background: none; border: none; cursor: pointer;
+  font-family: var(--font-sans); font-size: .8rem; font-weight: 500;
+  color: var(--topbar-muted); padding: 6px 10px; border-radius: var(--radius);
+  transition: background var(--transition), color var(--transition);
+}
+.menu-btn:hover { background: var(--accent-dim); color: var(--accent); }
+.menu-btn.active { color: var(--accent); background: var(--accent-lt); }
+
+
+/* ── 4. LAYOUT ───────────────────────────────────────────────────────────── */
+.pages {
+  position: absolute; inset: 0;
+  padding-top: var(--topbar-h);
+  overflow: hidden;
+}
+.page {
+  display: none; width: 100%; height: 100%; overflow-y: auto;
+}
+.page.active { display: block; }
+
+.page-content {
+  padding: 24px 20px 80px;
+  max-width: 860px; margin: 0 auto;
+}
+
+.page-header {
+  display: flex; align-items: flex-start;
+  justify-content: space-between; gap: 12px;
+  margin-bottom: 22px;
+}
+.page-header h1 {
+  font-family: var(--font-display);
+  font-size: 1.6rem; font-weight: 700;
+  letter-spacing: -.02em; color: var(--text);
+}
+.page-header .sub {
+  font-family: var(--font-mono); font-size: .68rem;
+  letter-spacing: .06em; color: var(--muted);
+  margin-top: 3px;
+}
+
+/* ── 5. CARD GRID ────────────────────────────────────────────────────────── */
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 16px;
+}
+.card-grid.single { grid-template-columns: 1fr; }
+
+.form-card {
+  background: var(--surface);
+  border: 1px solid var(--border); border-radius: var(--radius-lg);
+  padding: 18px; transition: box-shadow var(--transition);
+}
+.form-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,.06); }
+
+.card-title {
+  font-size: .82rem; font-weight: 700;
+  letter-spacing: .03em; color: var(--text2);
+  margin-bottom: 12px;
+}
+.hint {
+  font-size: .8rem; color: var(--muted); line-height: 1.65;
+}
+
+
+/* ── 6. BUTTONS ──────────────────────────────────────────────────────────── */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 9px 16px; border-radius: var(--radius);
+  font-family: var(--font-sans); font-size: .84rem; font-weight: 600;
+  cursor: pointer; border: none;
+  transition: background var(--transition), opacity var(--transition), transform var(--transition);
+  white-space: nowrap;
+}
+.btn:active { transform: scale(0.97); }
+
+.btn-primary {
+  background: var(--accent); color: #fff;
+}
+.btn-primary:hover { background: var(--accent-dk); }
+
+.btn-outline {
+  background: transparent; color: var(--accent);
+  border: 1.5px solid var(--accent);
+}
+.btn-outline:hover { background: var(--accent-lt); }
+
+.btn-ghost {
+  background: transparent; color: var(--text2);
+  border: 1.5px solid var(--border2);
+}
+.btn-ghost:hover { background: var(--surface2); }
+
+.btn-danger {
+  background: var(--danger); color: #fff;
+}
+.btn-danger:hover { opacity: 0.88; }
+
+.btn:disabled {
+  opacity: 0.42; cursor: not-allowed; pointer-events: none;
+}
+
+/* Small button variant */
+.btn-sm { padding: 6px 12px; font-size: .76rem; }
+
+
+/* ── 7. LOADING OVERLAY ──────────────────────────────────────────────────── */
+#loading-overlay {
+  display: none; position: fixed; inset: 0; z-index: 500;
+  background: rgba(247,242,236,.82);
+  align-items: center; justify-content: center;
+  backdrop-filter: blur(3px);
+}
+.loading-spinner {
+  width: 28px; height: 28px;
+  border: 3px solid var(--border2);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin .7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+
+/* ── 8. FORM ELEMENTS ────────────────────────────────────────────────────── */
+label {
+  display: block; font-family: var(--font-mono);
+  font-size: .68rem; font-weight: 500; letter-spacing: .08em;
+  text-transform: uppercase; color: var(--text2); margin-bottom: 5px;
+}
+input[type="text"],
+input[type="number"],
+input[type="date"],
+input[type="time"],
+input[type="email"],
+textarea,
+select {
+  width: 100%; padding: 8px 12px;
+  border: 1.5px solid var(--border); border-radius: 8px;
+  background: var(--surface); color: var(--text);
+  font-size: .88rem; font-family: var(--font-sans);
+  transition: border-color var(--transition), box-shadow var(--transition);
+}
+input:focus, textarea:focus, select:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-lt);
+}
+input[type="number"] { text-align: right; }
+
+.form-group { margin-bottom: 14px; }
+.form-row {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 12px; margin-bottom: 14px;
+}
+
+
+/* ── 9. TABLES ───────────────────────────────────────────────────────────── */
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: .875rem; }
+th, td { padding: 10px 14px; border-bottom: 1px solid var(--border); text-align: left; }
+th {
+  background: var(--surface2);
+  font-family: var(--font-mono); font-size: .62rem;
+  letter-spacing: .1em; text-transform: uppercase;
+  color: var(--muted); font-weight: 500;
+}
+th.num, td.num { text-align: right; }
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: var(--surface2); }
+.empty-cell { text-align: center; color: var(--muted); padding: 2.5rem; }
+
+.about-table { width: 100%; border-collapse: collapse; font-size: .8rem; }
+.about-table td {
+  padding: 7px 0; border-bottom: 1px solid var(--border); color: var(--muted);
+}
+.about-table td:first-child {
+  font-family: var(--font-mono); font-size: .72rem;
+  color: var(--text); width: 40%;
+}
+.about-table tr:last-child td { border-bottom: none; }
+
+
+/* ── 10. MODALS ──────────────────────────────────────────────────────────── */
+.modal-overlay {
+  position: fixed; inset: 0; z-index: 300;
+  background: rgba(0,0,0,.4);
+  display: none; align-items: center; justify-content: center;
+  padding: 20px;
+}
+.modal-overlay.show { display: flex; }
+.modal {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); width: 100%; max-width: 420px;
+  padding: 20px; box-shadow: 0 16px 48px rgba(0,0,0,.18);
+}
+.modal-head {
+  display: flex; align-items: center;
+  justify-content: space-between; margin-bottom: 14px;
+}
+.modal-head h3 { font-size: .95rem; font-weight: 600; }
+.modal-close {
+  background: none; border: none; font-size: 1rem;
+  cursor: pointer; color: var(--muted); padding: 2px 6px; border-radius: 4px;
+}
+.modal-close:hover { color: var(--text); }
+.modal-body { font-size: .84rem; color: var(--muted); line-height: 1.6; margin-bottom: 14px; }
+.modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px; }
+
+
+/* ── 11. TOAST ───────────────────────────────────────────────────────────── */
+#toast {
+  position: fixed; bottom: 28px; left: 50%;
+  transform: translateX(-50%) translateY(12px);
+  background: var(--text); color: var(--bg);
+  font-family: var(--font-mono); font-size: .72rem; letter-spacing: .04em;
+  padding: 10px 18px; border-radius: 24px;
+  opacity: 0; pointer-events: none;
+  transition: opacity .2s, transform .2s;
+  white-space: nowrap; z-index: 999;
+}
+#toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+#toast.err  { background: var(--danger); color: #fff; }
+#toast.ok   { background: var(--green);  color: #fff; }
+
+
+/* ── 12. MOBILE DRAWER ───────────────────────────────────────────────────── */
+#drawer-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,.35); z-index: 150;
+}
+#drawer-overlay.open { display: block; }
+
+#drawer {
+  position: fixed; top: 0; left: 0; bottom: 0;
+  width: 270px; background: var(--topbar-bg); z-index: 160;
+  border-right: 1px solid var(--topbar-bdr);
+  transform: translateX(-100%); transition: transform .28s ease;
+  display: flex; flex-direction: column; overflow-y: auto;
+}
+#drawer.open { transform: translateX(0); }
+
+#drawer-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 16px 12px;
+  border-bottom: 1px solid var(--topbar-bdr);
+}
+#drawer-brand { display: flex; align-items: baseline; gap: 6px; }
+#drawer-gnoke {
+  font-family: var(--font-mono); font-size: .62rem;
+  letter-spacing: .22em; text-transform: uppercase; color: var(--accent);
+}
+#drawer-app {
+  font-family: var(--font-display);
+  font-size: 1rem; font-weight: 700; color: var(--topbar-txt);
+}
+#drawer-close {
+  background: none; border: none;
+  color: var(--topbar-muted); font-size: 1rem; cursor: pointer; padding: 4px 8px;
+  transition: color var(--transition);
+}
+#drawer-close:hover { color: var(--topbar-txt); }
+.drawer-section {
+  font-family: var(--font-mono); font-size: .58rem; letter-spacing: .14em;
+  text-transform: uppercase; color: var(--topbar-muted); padding: 16px 16px 6px;
+}
+.drawer-btn {
+  background: none; border: none; text-align: left; width: 100%;
+  padding: 10px 16px; font-family: var(--font-sans); font-size: .86rem;
+  color: var(--topbar-txt); cursor: pointer;
+  transition: background var(--transition), color var(--transition);
+}
+.drawer-btn:hover { background: var(--accent-dim); color: var(--accent); }
+.drawer-btn.danger { color: var(--danger); }
+
+
+/* ── 13. RESPONSIVE ──────────────────────────────────────────────────────── */
+@media (max-width: 640px) {
+  #hamburger    { display: flex; }
+  .menu-group   { display: none; }
+  #context-info { display: none; }
+  .page-content { padding: 18px 14px 60px; }
+  .card-grid    { grid-template-columns: 1fr; }
+  .page-header h1 { font-size: 1.4rem; }
+}
+
+@media (min-width: 641px) {
+  #hamburger { display: none; }
+  #drawer, #drawer-overlay { display: none !important; }
+}
+
+/* ── PWA safe-area ── */
+@media (display-mode: standalone) {
+  #topbar { padding-top: env(safe-area-inset-top); height: calc(var(--topbar-h) + env(safe-area-inset-top)); }
+}

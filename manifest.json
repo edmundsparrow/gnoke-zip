@@ -1,0 +1,22 @@
+{
+  "name": "Gnoke [AppName]",
+  "short_name": "[AppName]",
+  "description": "[One-line description. Portable. Private. Persistent.]",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#f7f2ec",
+  "theme_color": "#1c140e",
+  "icons": [
+    {
+      "src": "global.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "global.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
