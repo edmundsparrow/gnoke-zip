@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Settings — Gnoke ZIP</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Playfair+Display:wght@600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet"       href="../style.css" />
+  <link rel="icon"             type="image/png"   href="../global.png" />
+  <link rel="apple-touch-icon"                    href="../global.png" />
+  <link rel="manifest"                            href="../manifest.json" />
+
+  <script>
+    (function () {
+      var t = localStorage.getItem('gnoke_zip_theme');
+      if (t) document.documentElement.setAttribute('data-theme', t);
+    })();
+  </script>
+</head>
+<body>
+
+<header>
+  <div>
+    <small style="opacity:0.5;font-family:var(--font-mono);font-size:.6rem;letter-spacing:.2em;text-transform:uppercase;">Gnoke</small>
+    <h1 style="margin:0;font-size:1.1rem;font-weight:700;font-family:var(--font-display);">Settings</h1>
+  </div>
+  <button class="btn btn-ghost btn-sm" id="btn-check-update" style="margin-left:auto;">🔄 Update</button>
+</header>
+
+
+<main class="pages">
+  <section class="page active">
+    <div class="page-content">
+
+      <div class="page-header">
+        <div>
+          <h1>Settings</h1>
+          <p class="sub">Preferences and updates</p>
+        </div>
+      </div>
+
+      <div class="card-grid">
+
+        <!-- Appearance -->
+        <div class="form-card">
+          <h2 class="card-title">🎨 Appearance</h2>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);">
+            <div>
+              <div style="font-size:.88rem;font-weight:600;color:var(--text);">Dark Mode</div>
+              <div style="font-size:.72rem;color:var(--muted);margin-top:2px;">Toggle light / dark theme</div>
+            </div>
+            <button class="btn btn-ghost btn-sm" id="settings-theme-toggle">🌙</button>
+          </div>
+        </div>
+
+        <!-- Archive defaults -->
+        <div class="form-card">
+          <h2 class="card-title">⚙️ Archive Defaults</h2>
+          <div class="form-group">
+            <label for="default-archive-name">Default archive name</label>
+            <input type="text" id="default-archive-name" placeholder="archive.zip" />
+          </div>
+          <button class="btn btn-primary btn-sm" id="btn-save-defaults">Save Defaults</button>
+        </div>
+
+        <!-- Updates -->
+        <div class="form-card" id="update-card">
+          <h2 class="card-title">🔄 Updates</h2>
+          <p class="hint">
+            Running <strong>v1.0</strong>.
+            Click Update in the header to fetch the latest version from GitHub.
+          </p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+</main>
+
+
+<div id="toast"></div>
+
+<script src="../js/theme.js"></script>
+<script src="../js/ui.js"></script>
+<script src="../js/update.js"></script>
+<script>
+  Theme.init();
+  UI.init();
+
+  /* Theme toggle */
+  const settingsThemeBtn = document.getElementById('settings-theme-toggle');
+  if (settingsThemeBtn) {
+    settingsThemeBtn.textContent = Theme.current() === 'dark' ? '☀️' : '🌙';
+    settingsThemeBtn.addEventListener('click', () => {
+      Theme.toggle();
+      settingsThemeBtn.textContent = Theme.current() === 'dark' ? '☀️' : '🌙';
+    });
+  }
+
+  /* Archive defaults */
+  const KEY_DEFAULT_NAME = 'gnoke_zip_default_name';
+  const defaultNameInput = document.getElementById('default-archive-name');
+  if (defaultNameInput) {
+    defaultNameInput.value = localStorage.getItem(KEY_DEFAULT_NAME) || 'archive.zip';
+  }
+
+  document.getElementById('btn-save-defaults')?.addEventListener('click', () => {
+    const name = defaultNameInput.value.trim() || 'archive.zip';
+    localStorage.setItem(KEY_DEFAULT_NAME, name);
+    UI.toast('Defaults saved.', 'ok');
+  });
+</script>
+
+<script src="hmenu.js"></script>
+
+</body>
+</html>

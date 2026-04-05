@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>About — Gnoke ZIP</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Playfair+Display:wght@600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet"       href="../style.css" />
+  <link rel="icon"             type="image/png"   href="../global.png" />
+  <link rel="apple-touch-icon"                    href="../global.png" />
+  <link rel="manifest"                            href="../manifest.json" />
+
+  <script>
+    (function () {
+      var t = localStorage.getItem('gnoke_zip_theme');
+      if (t) document.documentElement.setAttribute('data-theme', t);
+    })();
+  </script>
+</head>
+<body>
+
+<header>
+  <div>
+    <small style="opacity:0.5;font-family:var(--font-mono);font-size:.6rem;letter-spacing:.2em;text-transform:uppercase;">Gnoke</small>
+    <h1 style="margin:0;font-size:1.1rem;font-weight:700;font-family:var(--font-display);">About</h1>
+  </div>
+  <div style="margin-left:auto;display:flex;align-items:center;gap:8px;">
+    <button class="icon-btn" id="theme-toggle" title="Toggle theme">🌙</button>
+  </div>
+</header>
+
+
+<main class="pages">
+  <section class="page active">
+    <div class="page-content">
+
+      <div class="page-header">
+        <div>
+          <h1>About</h1>
+          <p class="sub">Gnoke ZIP · v1.0</p>
+        </div>
+      </div>
+
+      <div class="card-grid">
+
+        <div class="form-card">
+          <h2 class="card-title">📦 Gnoke ZIP</h2>
+          <p class="hint">
+            A lightweight, offline archive manager that runs entirely in your browser.
+            Create ZIP archives from multiple files, browse archive contents,
+            and extract individual files or everything at once.<br /><br />
+            Your data never leaves the device.
+          </p>
+        </div>
+
+        <div class="form-card">
+          <h2 class="card-title">⚙️ Under The Hood</h2>
+          <table class="about-table">
+            <tbody id="about-tech-table"></tbody>
+          </table>
+        </div>
+
+        <div class="form-card">
+          <h2 class="card-title">👤 Author</h2>
+          <p class="hint">
+            <strong>Edmund Sparrow</strong><br />
+            Part of the <strong>Gnoke Suite</strong> — offline-first tools
+            for developers, retailers, and independent builders.
+          </p>
+          <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;">
+            <a class="btn btn-outline" href="mailto:edmundsparrow@gmail.com">✉ Email</a>
+            <a class="btn btn-outline" href="https://github.com/edmundsparrow" target="_blank" rel="noopener">⌥ GitHub</a>
+            <a class="btn btn-outline" href="https://selar.com/showlove/edmundsparrow" target="_blank" rel="noopener">❤️ Coffee</a>
+          </div>
+        </div>
+
+        <div class="form-card">
+          <h2 class="card-title">📜 License</h2>
+          <p class="hint">
+            Free and open source under the
+            <strong>GNU General Public License v3.0</strong>.<br /><br />
+            Use it, modify it, share it — but keep it open.
+            Commercial use requires explicit permission from the author.
+          </p>
+          <p class="hint" style="margin-top:10px;font-family:var(--font-mono);font-size:0.68rem;color:var(--muted);">
+            © 2026 Edmund Sparrow — Gnoke Suite
+          </p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+</main>
+
+
+<div id="toast"></div>
+
+<script src="../js/theme.js"></script>
+<script>
+  Theme.init();
+
+  const tbody = document.getElementById('about-tech-table');
+  if (tbody) {
+    const rows = [
+      ['Archive library', 'JSZip 3.10.1 (CDN)'],
+      ['Persistence',     'None required (file I/O only)'],
+      ['Network',         'CDN only (JSZip on first load)'],
+      ['Stack',           'HTML · CSS · Vanilla JS'],
+      ['PWA',             'Service Worker + manifest'],
+      ['Version',         'v1.0'],
+    ];
+    tbody.innerHTML = rows.map(([k, v]) =>
+      `<tr><td>${k}</td><td>${v}</td></tr>`
+    ).join('');
+  }
+</script>
+
+<script src="hmenu.js"></script>
+
+</body>
+</html>

@@ -1,1 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Gnoke ZIP</title>
 
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Playfair+Display:wght@700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet"       href="../style.css" />
+  <link rel="icon"             type="image/png"   href="../global.png" />
+  <link rel="apple-touch-icon"                    href="../global.png" />
+  <link rel="manifest"                            href="../manifest.json" />
+
+  <!-- Anti-FOUC -->
+  <script>
+    (function () {
+      var t = localStorage.getItem('gnoke_zip_theme');
+      if (t) document.documentElement.setAttribute('data-theme', t);
+    })();
+  </script>
+
+  <style>
+    /* ── Mode cards ── */
+    .mode-card {
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 28px 20px;
+      cursor: pointer;
+      transition: border-color var(--transition), box-shadow var(--transition), transform var(--transition);
+      text-align: center;
+    }
+    .mode-card:hover {
+      border-color: var(--accent);
+      box-shadow: 0 6px 20px rgba(0,0,0,.08);
+      transform: translateY(-3px);
+    }
+    .mode-card-icon { font-size: 2.8rem; margin-bottom: 14px; display: block; line-height: 1; }
+    .mode-card h3 {
+      font-family: var(--font-display);
+      font-size: 1.2rem; font-weight: 700;
+      color: var(--text); margin-bottom: 8px;
+    }
+    .mode-card p { font-size: .8rem; color: var(--muted); line-height: 1.5; margin-bottom: 14px; }
+    .mode-card-badges { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; }
+    .badge {
+      font-family: var(--font-mono); font-size: .6rem; letter-spacing: .06em;
+      text-transform: uppercase;
+      background: var(--accent-lt); color: var(--accent-txt);
+      padding: 3px 8px; border-radius: 20px;
+    }
+
+    /* ── FSA capability badge ── */
+    .fsa-badge {
+      display: none; /* shown by JS when API available */
+      align-items: center; gap: 5px;
+      font-family: var(--font-mono); font-size: .62rem; letter-spacing: .05em;
+      text-transform: uppercase;
+      background: var(--green-lt); color: var(--green);
+      border: 1px solid rgba(45,110,78,.2);
+      padding: 4px 10px; border-radius: 20px;
+      margin-bottom: 14px;
+    }
+    .fsa-badge-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--green); flex-shrink: 0;
+    }
+
+    /* ── Drop zone ── */
+    #drop-zone {
+      border: 2.5px dashed var(--border2);
+      border-radius: var(--radius-lg);
+      padding: 40px 20px;
+      text-align: center;
+      background: var(--surface2);
+      cursor: pointer;
+      transition: border-color var(--transition), background var(--transition);
+      margin-bottom: 16px;
+    }
+    #drop-zone:hover, #drop-zone.drag-over {
+      border-color: var(--accent);
+      background: var(--accent-lt);
+    }
+    #drop-zone-icon { font-size: 2.4rem; margin-bottom: 10px; display: block; }
+    #drop-zone-label { font-size: .88rem; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+    #drop-zone-hint  { font-size: .74rem; color: var(--muted); }
+
+    /* ── File list (create page) ── */
+    .file-list-inner {
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      background: var(--surface);
+    }
+    #file-list-summary {
+      font-family: var(--font-mono); font-size: .66rem;
+      color: var(--muted); margin-top: 8px; letter-spacing: .04em;
+    }
+
+    /* ── File row (shared by create + extract) ── */
+    .file-row {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border);
+      transition: background var(--transition);
+    }
+    .file-row:last-child  { border-bottom: none; }
+    .file-row:hover       { background: var(--surface2); }
+    .file-row-header {
+      background: var(--surface2);
+      padding: 8px 14px;
+      border-bottom: 1.5px solid var(--border);
+      position: sticky; top: 0; z-index: 1;
+    }
+    .file-row-header:hover { background: var(--surface2); }
+
+    .file-row-icon {
+      width: 28px; height: 28px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1rem;
+      background: var(--surface3); border-radius: 6px;
+      flex-shrink: 0;
+    }
+    .file-row-info { flex: 1; min-width: 0; }
+    .file-row-name {
+      font-size: .84rem; font-weight: 500; color: var(--text);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .file-row-size {
+      font-family: var(--font-mono); font-size: .64rem;
+      color: var(--muted); margin-top: 2px;
+    }
+
+    /* ── Checkbox wrapper ── */
+    .cb-wrap {
+      display: flex; align-items: center; justify-content: center;
+      width: 22px; height: 22px; flex-shrink: 0; cursor: pointer;
+    }
+    .cb-wrap input[type="checkbox"] {
+      width: 15px; height: 15px;
+      accent-color: var(--accent); cursor: pointer;
+    }
+
+    /* ── Archive contents panel ── */
+    #archive-contents {
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-lg);
+      max-height: 400px;
+      overflow-y: auto;
+      background: var(--surface);
+      margin-bottom: 14px;
+    }
+    .archive-empty {
+      padding: 48px 20px;
+      text-align: center; color: var(--muted); font-size: .84rem;
+    }
+    .archive-empty-icon { font-size: 2.4rem; margin-bottom: 10px; display: block; }
+
+    /* ── Archive meta strip ── */
+    .archive-meta {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 10px 14px; margin-bottom: 12px;
+      display: flex; align-items: baseline; gap: 10px;
+    }
+    .archive-meta-name {
+      font-size: .88rem; font-weight: 600; color: var(--text);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1;
+    }
+    .archive-meta-info {
+      font-family: var(--font-mono); font-size: .66rem;
+      color: var(--muted); white-space: nowrap;
+    }
+
+    /* ── Toolbar row ── */
+    .toolbar {
+      display: flex; align-items: center;
+      gap: 8px; margin-bottom: 12px; flex-wrap: wrap;
+    }
+    .toolbar-right { margin-left: auto; display: flex; gap: 8px; flex-wrap: wrap; }
+  </style>
+</head>
+<body>
+
+<!-- ════ TOPBAR ════ -->
+<header id="topbar">
+  <div id="topbar-left">
+    <div id="topbar-brand">
+      <span id="topbar-gnoke">Gnoke</span>
+      <span id="topbar-app">ZIP</span>
+    </div>
+    <span id="context-info"></span>
+  </div>
+  <div id="topbar-right">
+    <span id="status-chip"></span>
+    <button class="icon-btn" id="theme-toggle" title="Toggle theme">🌙</button>
+  </div>
+</header>
+
+
+<!-- ════ PAGES ════ -->
+<main class="pages">
+
+  <!-- ── HOME PAGE ── -->
+  <section id="main-page" class="page">
+    <div class="page-content">
+
+      <div class="page-header">
+        <div>
+          <h1>ZIP</h1>
+          <p class="sub">Archive manager — offline, no account</p>
+        </div>
+      </div>
+
+      <div class="card-grid">
+
+        <div class="mode-card" id="card-create">
+          <span class="mode-card-icon">📁</span>
+          <h3>Create Archive</h3>
+          <p>Compress multiple files into a single ZIP with maximum compression.</p>
+          <div class="mode-card-badges">
+            <span class="badge">Multiple files</span>
+            <span class="badge">ZIP format</span>
+            <span class="badge">Drag & drop</span>
+          </div>
+        </div>
+
+        <div class="mode-card" id="card-extract">
+          <span class="mode-card-icon">📂</span>
+          <h3>Extract Archive</h3>
+          <p>Open a ZIP, browse contents, and extract selected files or everything.</p>
+          <div class="mode-card-badges">
+            <span class="badge">ZIP · RAR · 7Z · ISO</span>
+            <span class="badge">Extract selected</span>
+            <span class="badge">Save to folder</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ── CREATE PAGE ── -->
+  <section id="create-page" class="page">
+    <div class="page-content">
+
+      <div class="page-header">
+        <div>
+          <h1>Create Archive</h1>
+          <p class="sub">Compress files into a ZIP</p>
+        </div>
+        <button class="btn btn-ghost btn-back-home">← Back</button>
+      </div>
+
+      <!-- FSA capability badge — shown by JS if supported -->
+      <div class="fsa-badge" id="fsa-create-badge">
+        <span class="fsa-badge-dot"></span>
+        Save to location — File System Access available
+      </div>
+
+      <!-- Archive settings -->
+      <div class="form-card" style="margin-bottom:16px;">
+        <h2 class="card-title">📦 Archive Settings</h2>
+        <div class="form-group" style="margin-bottom:0;">
+          <label for="archive-name">Archive filename</label>
+          <input type="text" id="archive-name" value="archive.zip" placeholder="archive.zip" />
+        </div>
+      </div>
+
+      <!-- Drop zone -->
+      <div id="drop-zone">
+        <span id="drop-zone-icon">📎</span>
+        <div id="drop-zone-label">Drop files here or click to select</div>
+        <div id="drop-zone-hint">Multiple files supported</div>
+      </div>
+
+      <!-- File list -->
+      <div id="file-list"></div>
+      <div id="file-list-summary"></div>
+
+      <!-- Actions -->
+      <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:18px;">
+        <button class="btn btn-ghost btn-back-home">Cancel</button>
+        <button class="btn btn-primary" id="btn-create-archive" disabled>📦 Create Archive</button>
+      </div>
+
+    </div>
+  </section>
+
+
+  <!-- ── EXTRACT PAGE ── -->
+  <section id="extract-page" class="page">
+    <div class="page-content">
+
+      <div class="page-header">
+        <div>
+          <h1>Extract Archive</h1>
+          <p class="sub">Browse and save files from a ZIP</p>
+        </div>
+        <button class="btn btn-ghost btn-back-home">← Back</button>
+      </div>
+
+      <!-- FSA capability badge — shown by JS if supported -->
+      <div class="fsa-badge" id="fsa-extract-badge">
+        <span class="fsa-badge-dot"></span>
+        Save to folder — File System Access available
+      </div>
+
+      <!-- Archive meta strip -->
+      <div class="archive-meta">
+        <span class="archive-meta-name" id="extract-archive-name">No archive loaded</span>
+        <span class="archive-meta-info" id="extract-archive-info">Open a ZIP file to browse its contents</span>
+      </div>
+
+      <!-- Toolbar -->
+      <div class="toolbar">
+        <button class="btn btn-outline" id="btn-open-archive">📂 Open ZIP</button>
+        <div class="toolbar-right">
+          <button class="btn btn-ghost" id="btn-extract-selected" disabled>📋 Extract Selected</button>
+          <button class="btn btn-primary" id="btn-extract-all" disabled>📥 Extract All</button>
+        </div>
+      </div>
+
+      <!-- Contents list with checkboxes -->
+      <div id="archive-contents">
+        <div class="archive-empty">
+          <span class="archive-empty-icon">📦</span>
+          Open a ZIP archive to view its contents
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+</main>
+
+
+<!-- ════ LOADING OVERLAY ════ -->
+<div id="loading-overlay">
+  <div class="loading-spinner"></div>
+</div>
+
+<div id="toast"></div>
+
+
+<!-- ════ SCRIPTS ════ -->
+<script src="../js/state.js"></script>
+<script src="../js/theme.js"></script>
+<script src="../js/ui.js"></script>
+<script src="../js/archiver.js"></script>
+<script src="../js/extractor.js"></script>
+<script src="../js/app.js"></script>
+
+<!-- Shared navigation — always last -->
+<script src="hmenu.js"></script>
+
+</body>
+</html>
