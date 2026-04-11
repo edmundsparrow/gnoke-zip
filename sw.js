@@ -1,4 +1,4 @@
-const CACHE_NAME = 'gnoke-zip-v2.1';
+const CACHE_NAME = 'gnoke-zip-v2.2';
 const ASSETS = [
   './', './index.html', 
   './main/',
