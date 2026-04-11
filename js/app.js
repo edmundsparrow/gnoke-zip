@@ -7,6 +7,14 @@
  *   main-page   → home: two mode cards (Create / Extract)
  *   create-page → drop files → name archive → Create Archive
  *   extract-page → open archive → browse entries → extract selected or all
+ *
+ * Extract view modes (toggled per session):
+ *   Flat  — one row per file, full path shown as text
+ *   Tree  — collapsible folder nodes, files indented underneath
+ *
+ * Extraction path behaviour:
+ *   FSA folder picker  → full folder structure recreated on disk
+ *   Fallback download  → filename only (browsers can't create folders via <a>)
  */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -155,6 +163,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   let _extractFile    = null;
   let _extractEntries = [];
+  let _viewMode       = 'flat'; // 'flat' | 'tree'
 
   const btnOpenArchive     = document.getElementById('btn-open-archive');
   const btnExtractAll      = document.getElementById('btn-extract-all');
@@ -162,6 +171,24 @@ document.addEventListener('DOMContentLoaded', () => {
   const archiveContents    = document.getElementById('archive-contents');
   const archiveNameDisp    = document.getElementById('extract-archive-name');
   const archiveInfoDisp    = document.getElementById('extract-archive-info');
+
+  /* ── Inject view-toggle button into the toolbar (once) ── */
+  _injectViewToggleStyles();
+  const _btnViewToggle = document.createElement('button');
+  _btnViewToggle.id        = 'btn-view-toggle';
+  _btnViewToggle.className = 'btn btn-ghost btn-sm';
+  _btnViewToggle.title     = 'Switch between flat list and folder tree';
+  _btnViewToggle.style.display = 'none'; // hidden until an archive is loaded
+  _btnViewToggle.innerHTML = '🌲 Tree View';
+  _btnViewToggle.addEventListener('click', () => {
+    _viewMode = _viewMode === 'flat' ? 'tree' : 'flat';
+    _btnViewToggle.innerHTML = _viewMode === 'flat' ? '🌲 Tree View' : '☰ Flat View';
+    _renderExtractList();
+  });
+
+  /* Insert toggle just before the Extract Selected button in the toolbar-right div */
+  const toolbarRight = document.querySelector('.toolbar-right');
+  if (toolbarRight) toolbarRight.insertBefore(_btnViewToggle, toolbarRight.firstChild);
 
   btnOpenArchive?.addEventListener('click', _openArchivePicker);
 
@@ -176,6 +203,8 @@ document.addEventListener('DOMContentLoaded', () => {
   async function _loadArchive(file) {
     UI.loading(true);
     _extractFile = file;
+    _viewMode    = 'flat'; // reset to flat on each new archive
+    _btnViewToggle.innerHTML = '🌲 Tree View';
     try {
       const fmt = await Extractor.detect(file);
       if (!fmt) throw new Error('Unsupported format. Accepts: ZIP, RAR, 7Z, ISO');
@@ -192,6 +221,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (btnExtractAll)      btnExtractAll.disabled      = false;
       if (btnExtractSelected) btnExtractSelected.disabled = false;
+      _btnViewToggle.style.display = '';
 
     } catch (err) {
       UI.toast(err.message, 'err');
@@ -203,7 +233,14 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  /* ── Render: routes to flat or tree ── */
   function _renderExtractList() {
+    if (_viewMode === 'tree') _renderTree();
+    else                      _renderFlat();
+  }
+
+  /* ── FLAT VIEW (original behaviour) ── */
+  function _renderFlat() {
     if (!archiveContents) return;
     if (!_extractEntries.length) {
       archiveContents.innerHTML = `
@@ -238,6 +275,146 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  /* ── TREE VIEW ── */
+  function _renderTree() {
+    if (!archiveContents) return;
+    if (!_extractEntries.length) {
+      archiveContents.innerHTML = `
+        <div class="archive-empty">
+          <span class="archive-empty-icon">📭</span>Archive is empty
+        </div>`;
+      return;
+    }
+
+    /* Build a nested tree object from flat entry paths */
+    const root = _buildTree(_extractEntries);
+
+    archiveContents.innerHTML = `
+      <div class="file-list-inner">
+        <div class="file-row file-row-header">
+          <div class="cb-wrap"><input type="checkbox" id="cb-all" title="Select all" /></div>
+          <div class="file-row-info" style="padding-left:6px;">
+            <div class="file-row-name" style="font-family:var(--font-mono);font-size:.62rem;letter-spacing:.08em;color:var(--muted);text-transform:uppercase;">Name</div>
+          </div>
+          <div style="font-family:var(--font-mono);font-size:.62rem;color:var(--muted);text-transform:uppercase;white-space:nowrap;padding-right:14px;">Size</div>
+        </div>
+        <div id="tree-body">${_renderTreeNodes(root.children, 0)}</div>
+      </div>`;
+
+    /* Select-all wires to every file checkbox in tree */
+    document.getElementById('cb-all')?.addEventListener('change', ev => {
+      archiveContents.querySelectorAll('.entry-cb').forEach(cb => cb.checked = ev.target.checked);
+    });
+
+    /* Folder collapse / expand */
+    archiveContents.querySelectorAll('.tree-folder-row').forEach(row => {
+      row.addEventListener('click', e => {
+        if (e.target.type === 'checkbox') return; // don't intercept checkbox clicks
+        const id       = row.dataset.folderId;
+        const children = archiveContents.querySelector(`.tree-folder-children[data-parent="${id}"]`);
+        const arrow    = row.querySelector('.tree-arrow');
+        if (!children) return;
+        const collapsed = children.style.display === 'none';
+        children.style.display = collapsed ? '' : 'none';
+        if (arrow) arrow.textContent = collapsed ? '▾' : '▸';
+        row.classList.toggle('tree-folder-collapsed', !collapsed);
+      });
+    });
+
+    /* Folder checkbox → check / uncheck all children recursively */
+    archiveContents.querySelectorAll('.folder-cb').forEach(cb => {
+      cb.addEventListener('change', ev => {
+        const id       = ev.target.dataset.folderId;
+        const children = archiveContents.querySelector(`.tree-folder-children[data-parent="${id}"]`);
+        if (children) {
+          children.querySelectorAll('input[type="checkbox"]').forEach(c => c.checked = ev.target.checked);
+        }
+      });
+    });
+  }
+
+  /* Build nested tree from flat entry list */
+  function _buildTree(entries) {
+    const root = { name: '', children: {}, files: [] };
+    entries.forEach((entry, idx) => {
+      const parts = (entry.path || entry.name).split('/').filter(Boolean);
+      let   node  = root;
+      /* Walk / create folder nodes */
+      for (let i = 0; i < parts.length - 1; i++) {
+        const seg = parts[i];
+        if (!node.children[seg]) node.children[seg] = { name: seg, children: {}, files: [], path: parts.slice(0, i + 1).join('/') };
+        node = node.children[seg];
+      }
+      /* Attach file to deepest node */
+      node.files.push({ ...entry, _idx: idx });
+    });
+    return root;
+  }
+
+  /* Recursively render tree nodes as HTML strings */
+  function _renderTreeNodes(children, depth) {
+    const indent = depth * 18; // px per depth level
+    let html = '';
+
+    /* Folders first */
+    Object.values(children).sort((a, b) => a.name.localeCompare(b.name)).forEach(folder => {
+      const folderId = folder.path.replace(/[^a-z0-9]/gi, '_');
+      html += `
+        <div class="file-row tree-folder-row" data-folder-id="${folderId}" style="cursor:pointer;padding-left:${14 + indent}px;">
+          <div class="cb-wrap">
+            <input type="checkbox" class="folder-cb" data-folder-id="${folderId}" onclick="event.stopPropagation()" />
+          </div>
+          <span class="tree-arrow" style="font-size:.7rem;width:14px;color:var(--muted);flex-shrink:0;">▾</span>
+          <div class="file-row-icon" style="background:transparent;font-size:1rem;">📁</div>
+          <div class="file-row-info">
+            <div class="file-row-name" style="font-weight:600;">${folder.name}</div>
+          </div>
+          <div class="file-row-size"></div>
+        </div>
+        <div class="tree-folder-children" data-parent="${folderId}">
+          ${_renderTreeNodes(folder.children, depth + 1)}
+          ${_renderTreeFiles(folder.files, depth + 1)}
+        </div>`;
+    });
+
+    return html;
+  }
+
+  /* Render file rows within a tree node */
+  function _renderTreeFiles(files, depth) {
+    const indent = depth * 18;
+    return files.map(f => `
+      <div class="file-row" style="padding-left:${14 + indent}px;">
+        <div class="cb-wrap"><input type="checkbox" class="entry-cb" data-idx="${f._idx}" /></div>
+        <div class="file-row-icon">${_fileIcon(f.name)}</div>
+        <div class="file-row-info">
+          <div class="file-row-name" title="${f.path}">${f.name}</div>
+        </div>
+        <div class="file-row-size">${_fmtSize(f.size)}</div>
+      </div>`).join('');
+  }
+
+  /* ── Inject tree-specific CSS once ── */
+  function _injectViewToggleStyles() {
+    if (document.getElementById('tree-view-styles')) return;
+    const s = document.createElement('style');
+    s.id = 'tree-view-styles';
+    s.textContent = `
+      .tree-folder-row { user-select: none; }
+      .tree-folder-row:hover { background: var(--surface2); }
+      .tree-folder-collapsed > .tree-arrow { color: var(--accent); }
+      .tree-folder-children  { transition: none; }
+      .tree-arrow { display:inline-flex; align-items:center; justify-content:center;
+                    width:14px; margin-right:4px; flex-shrink:0; }
+    `;
+    document.head.appendChild(s);
+  }
+
+
+  /* ════════════════════════════════════════════════════════════════
+     EXTRACT — selected entries collector works for both views
+  ════════════════════════════════════════════════════════════════ */
+
   btnExtractAll?.addEventListener('click', () => _doExtract(_extractEntries));
 
   btnExtractSelected?.addEventListener('click', () => {
@@ -253,7 +430,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let saved = 0, failed = 0;
 
     try {
-      /* Try File System Access API — saves all to a chosen folder */
+      /* ── File System Access API: recreate full folder structure ── */
       if (hasFSA && entries.length > 1) {
         let dirHandle = null;
         try { dirHandle = await window.showDirectoryPicker({ mode: 'readwrite' }); } catch { }
@@ -261,10 +438,19 @@ document.addEventListener('DOMContentLoaded', () => {
         if (dirHandle) {
           for (const entry of entries) {
             try {
-              const blob  = await Extractor.extractOne(_extractFile, entry.path || entry.name);
-              const fname = (entry.path || entry.name).split('/').pop();
-              const fh    = await dirHandle.getFileHandle(fname, { create: true });
-              const w     = await fh.createWritable();
+              const blob      = await Extractor.extractOne(_extractFile, entry.path || entry.name);
+              const entryPath = entry.path || entry.name;
+              const parts     = entryPath.split('/').filter(Boolean);
+              const fname     = parts.pop();                    // filename is last segment
+
+              /* Walk / create every intermediate folder */
+              let handle = dirHandle;
+              for (const seg of parts) {
+                handle = await handle.getDirectoryHandle(seg, { create: true });
+              }
+
+              const fh = await handle.getFileHandle(fname, { create: true });
+              const w  = await fh.createWritable();
               await w.write(blob); await w.close();
               saved++;
             } catch (e) { console.warn(e); failed++; }
@@ -275,7 +461,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       }
 
-      /* Fallback: individual downloads */
+      /* ── Fallback: individual downloads (filename only — browser limitation) ── */
       for (const entry of entries) {
         try {
           const blob  = await Extractor.extractOne(_extractFile, entry.path || entry.name);
@@ -333,3 +519,4 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
 });
+
